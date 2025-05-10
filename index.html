@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BFHL Qualifier</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h2>BFHL Qualifier Form</h2>
+
+  <form id="bfhlForm">
+    <label>Enter Data (comma-separated):</label><br>
+    <input type="text" id="dataInput" placeholder="e.g. 1,2,a,b,Z"><br><br>
+
+    <label>Select File (optional):</label><br>
+    <input type="file" id="fileInput"><br><br>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <pre id="response"></pre>
+
+  <script>
+    document.getElementById("bfhlForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const data = document.getElementById("dataInput").value.split(",").map(s => s.trim());
+      const fileInput = document.getElementById("fileInput").files[0];
+
+      let file_b64 = "";
+      if (fileInput) {
+        const reader = new FileReader();
+        reader.onloadend = async function () {
+          file_b64 = reader.result.split(",")[1];
+
+          sendRequest(data, file_b64);
+        };
+        reader.readAsDataURL(fileInput);
+      } else {
+        sendRequest(data, "");
+      }
+
+      async function sendRequest(data, file_b64) {
+        const response = await fetch("http://localhost:8080/bfhl", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ data, file_b64 })
+        });
+
+        const result = await response.json();
+        document.getElementById("response").textContent = JSON.stringify(result, null, 2);
+      }
+    });
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>
