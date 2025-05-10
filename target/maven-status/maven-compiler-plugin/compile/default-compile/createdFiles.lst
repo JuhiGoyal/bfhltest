@@ -1,0 +1,4 @@
+com\bfhl\BhflApplication.class
+com\bfhl\model\RequestData.class
+com\bfhl\model\ResponseData.class
+com\bfhl\controller\BfhlController.class
