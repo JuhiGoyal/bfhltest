@@ -15,19 +15,20 @@ public class ResponseData {
     private String file_mime_type;
     private int file_size_kb;
 
+    // Constructor with null-checking for parameters
     public ResponseData(boolean is_success, String user_id, String email, String roll_number,
                         List<String> numbers, List<String> alphabets, List<String> highest_lowercase_alphabet,
                         boolean is_prime_found, boolean file_valid, String file_mime_type, int file_size_kb) {
         this.is_success = is_success;
-        this.user_id = user_id;
-        this.email = email;
-        this.roll_number = roll_number;
-        this.numbers = numbers;
-        this.alphabets = alphabets;
-        this.highest_lowercase_alphabet = highest_lowercase_alphabet;
+        this.user_id = (user_id != null) ? user_id : "";
+        this.email = (email != null) ? email : "";
+        this.roll_number = (roll_number != null) ? roll_number : "";
+        this.numbers = (numbers != null) ? numbers : List.of();  // Return empty list if null
+        this.alphabets = (alphabets != null) ? alphabets : List.of();  // Return empty list if null
+        this.highest_lowercase_alphabet = (highest_lowercase_alphabet != null) ? highest_lowercase_alphabet : List.of();  // Return empty list if null
         this.is_prime_found = is_prime_found;
         this.file_valid = file_valid;
-        this.file_mime_type = file_mime_type;
+        this.file_mime_type = (file_mime_type != null) ? file_mime_type : "";  // Default empty string
         this.file_size_kb = file_size_kb;
     }
 

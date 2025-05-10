@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>BFHL Qualifier</title>
+  <title>0827CS221118</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -9,7 +9,7 @@
 
   <form id="bfhlForm">
     <label>Enter Data (comma-separated):</label><br>
-    <input type="text" id="dataInput" placeholder="e.g. 1,2,a,b,Z"><br><br>
+    <input type="text" id="dataInput" placeholder='e.g. {"data": ["1", "a", "b"]}'>
 
     <label>Select File (optional):</label><br>
     <input type="file" id="fileInput"><br><br>
@@ -17,13 +17,36 @@
     <button type="submit">Submit</button>
   </form>
 
+  <h3>View Response Data:</h3>
+  <select id="categoryDropdown" style="display: none;">
+    <option value="">-- Select Category --</option>
+    <option value="alphabets">Alphabets</option>
+    <option value="numbers">Numbers</option>
+    <option value="highest_lowercase_alphabet">Highest Lowercase Alphabet</option>
+  </select>
+
+  <div id="categoryOutput" style="margin-top: 10px;"></div>
+
   <pre id="response"></pre>
 
   <script>
+    let latestResponse = null;
+
     document.getElementById("bfhlForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
-      const data = document.getElementById("dataInput").value.split(",").map(s => s.trim());
+      let parsedInput;
+      try {
+        parsedInput = JSON.parse(document.getElementById("dataInput").value);
+        if (!Array.isArray(parsedInput.data)) {
+          alert("JSON must contain a 'data' array.");
+          return;
+        }
+      } catch (e) {
+        alert("Invalid JSON format.");
+        return;
+      }
+      const data = parsedInput.data;
       const fileInput = document.getElementById("fileInput").files[0];
 
       let file_b64 = "";
@@ -31,7 +54,6 @@
         const reader = new FileReader();
         reader.onloadend = async function () {
           file_b64 = reader.result.split(",")[1];
-
           sendRequest(data, file_b64);
         };
         reader.readAsDataURL(fileInput);
@@ -40,19 +62,51 @@
       }
 
       async function sendRequest(data, file_b64) {
-        const response = await fetch("http://localhost:8080/bfhl", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ data, file_b64 })
-        });
+        try {
+          const response = await fetch("http://localhost:8080/bfhl", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ data, file_b64 })
+          });
 
-        const result = await response.json();
-        document.getElementById("response").textContent = JSON.stringify(result, null, 2);
+          const result = await response.json();
+          latestResponse = result;
+
+          document.getElementById("response").textContent = JSON.stringify(result, null, 2);
+          alert("Response received!");
+
+          document.getElementById("categoryDropdown").style.display = "inline-block";
+          document.getElementById("categoryOutput").textContent = "";
+        } catch (error) {
+          alert("An error occurred while submitting the form.");
+          console.error("Error:", error);
+        }
       }
     });
+
+    // When dropdown changes, update output
+    document.getElementById("categoryDropdown").addEventListener("change", function () {
+      const selected = this.value;
+      const outputDiv = document.getElementById("categoryOutput");
+
+      if (!latestResponse || !selected) {
+        outputDiv.textContent = "";
+        return;
+      }
+
+      let output = [];
+      if (selected === "alphabets") {
+        output = latestResponse.alphabets || [];
+      } else if (selected === "numbers") {
+        output = latestResponse.numbers || [];
+      } else if (selected === "highest_lowercase_alphabet") {
+        output = latestResponse.highest_lowercase_alphabet || [];
+      }
+
+      outputDiv.textContent = `Selected [${selected}]: ${output.join(", ")}`;
+    });
   </script>
-  <script src="script.js"></script>
 </body>
 </html>
